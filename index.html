@@ -83,17 +83,21 @@
             </a>
 
             <a
-            class="link"
-            href="https://soundcloud.com/resonantartisan"
-            target='_blank'
-            rel="noopener"
-            oneclick="sendMusicClick ('soundcloud')"
+              class="link"
+              href="https://soundcloud.com/resonantartisan"
+              target="_blank"
+              rel="noopener"
+              onclick="sendMusicClick('soundcloud')"
             >
-              <span class="left":>
-                <img class="icon" src="/icons/soundcloud.png" alt="SoundCloud" />
+              <span class="left">
+                <img
+                  class="icon"
+                  src="/icons/soundcloud.png"
+                  alt="SoundCloud"
+                />
                 SoundCloud
               </span>
-              </span class="arrow">›</span>
+              <span class="arrow">›</span>
             </a>
           </div>
 
@@ -146,27 +150,63 @@
               href="https://x.com/resonantartisan"
               target="_blank"
               rel="noopener"
-              oneclick="sendMusicClick('x')"
+              onclick="sendMusicClick('x')"
             >
-             <span class="left">
-               <img class="icon" src="/icons/x.svg.png" alt="X" />
-               X
-             </span>
-            </span class="arrow">›</span>
-            </a>
-          </div>
-
-          <div class="sectionLabel">Contact</div>
-          <div class="grid">
-            <a class="link" href="mailto:contact@resonantartisan.com" onclick="sendMusicClick('email')">
               <span class="left">
-                <img class="icon" src="/icons/email.svg" alt="Email" />
-                Email
+                <img class="icon" src="/icons/x.svg.png" alt="X" />
+                X
               </span>
               <span class="arrow">›</span>
             </a>
           </div>
-          
+
+          <div class="sectionLabel">Contact</div>
+
+          <!-- Contact form (Cloudflare Pages Function -> Resend) -->
+          <form id="contactForm" class="grid" style="gap: 12px">
+            <input
+              class="input"
+              name="name"
+              placeholder="Name"
+              autocomplete="name"
+            />
+
+            <input
+              class="input"
+              name="email"
+              placeholder="Email"
+              type="email"
+              autocomplete="email"
+              required
+            />
+
+            <textarea
+              class="input"
+              name="message"
+              placeholder="Message"
+              rows="5"
+              required
+            ></textarea>
+
+            <!-- Honeypot field (spam trap). Keep hidden via .hp in CSS -->
+            <input
+              class="hp"
+              name="company"
+              tabindex="-1"
+              autocomplete="off"
+              aria-hidden="true"
+            />
+
+            <button
+              class="btn"
+              type="submit"
+              onclick="sendMusicClick('contact_submit')"
+            >
+              Send
+            </button>
+
+            <div id="contactStatus" class="status" aria-live="polite"></div>
+          </form>
 
           <footer>© <span id="y"></span> Resonant Artisan</footer>
         </div>
@@ -190,6 +230,38 @@
           keepalive: true,
         }).catch(() => {});
       }
+
+      // ===== Contact form submit (Pages Function: /api/contact) =====
+      (function () {
+        const form = document.getElementById("contactForm");
+        const statusEl = document.getElementById("contactStatus");
+        if (!form || !statusEl) return;
+
+        form.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          statusEl.textContent = "Sending...";
+
+          const formData = new FormData(form);
+          const payload = Object.fromEntries(formData.entries());
+
+          try {
+            const res = await fetch("/api/contact", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            });
+
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(data?.error || "Failed to send");
+
+            statusEl.textContent = "Sent! Thanks — I’ll reply soon.";
+            form.reset();
+          } catch (err) {
+            statusEl.textContent =
+              "Sorry — something went wrong. Try again in a moment.";
+          }
+        });
+      })();
 
       // ===== Cursor-reactive background (lightweight) =====
       (function () {
