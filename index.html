@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Resonant Artisan</title>
+    <meta
+      name="description"
+      content="Official artist profile — streaming & social links."
+    />
+    <meta name="theme-color" content="#07080c" />
+
+    <!-- Font for the title (matches your sci-fi aesthetic) -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- External stylesheet -->
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+
+  <body>
+    <!-- Background image layer -->
+    <div class="bg" aria-hidden="true"></div>
+
+    <div class="wrap">
+      <main class="card" role="main">
+        <div class="inner">
+          <div class="top">
+            <h1>Resonant Artisan</h1>
+            <div class="sub">Official Artist Profile</div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="sectionLabel">Music</div>
+          <div class="grid">
+            <a
+              class="link"
+              href="https://open.spotify.com/artist/XXXX"
+              target="_blank"
+              rel="noopener"
+              onclick="sendMusicClick('spotify')"
+            >
+              <span class="left">
+                <img class="icon" src="/icons/spotify.svg" alt="Spotify" />
+                Spotify
+              </span>
+              <span class="arrow">›</span>
+            </a>
+
+            <a
+              class="link"
+              href="https://music.apple.com/artist/XXXX"
+              target="_blank"
+              rel="noopener"
+              onclick="sendMusicClick('apple_music')"
+            >
+              <span class="left">
+                <img
+                  class="icon"
+                  src="/icons/apple-music.svg"
+                  alt="Apple Music"
+                />
+                Apple Music
+              </span>
+              <span class="arrow">›</span>
+            </a>
+
+            <a
+              class="link"
+              href="https://youtube.com/@ResonantArtisan"
+              target="_blank"
+              rel="noopener"
+              onclick="sendMusicClick('youtube')"
+            >
+              <span class="left">
+                <img class="icon" src="/icons/youtube.png" alt="YouTube" />
+                YouTube
+              </span>
+              <span class="arrow">›</span>
+            </a>
+          </div>
+
+          <div class="sectionLabel">Social</div>
+          <div class="grid">
+            <a
+              class="link"
+              href="https://instagram.com/resonantartisan"
+              target="_blank"
+              rel="noopener"
+              onclick="sendMusicClick('instagram')"
+            >
+              <span class="left">
+                <img class="icon" src="/icons/instagram.svg" alt="Instagram" />
+                Instagram
+              </span>
+              <span class="arrow">›</span>
+            </a>
+
+            <a
+              class="link"
+              href="https://tiktok.com/@resonantartisan"
+              target="_blank"
+              rel="noopener"
+              onclick="sendMusicClick('tiktok')"
+            >
+              <span class="left">
+                <img class="icon" src="/icons/tiktok-1.svg" alt="TikTok" />
+                TikTok
+              </span>
+              <span class="arrow">›</span>
+            </a>
+
+            <a
+              class="link"
+              href="https://threads.com/resonantartisan"
+              target="_blank"
+              rel="noopener"
+              onclick="sendMusicClick('threads')"
+            >
+              <span class="left">
+                <img class="icon" src="/icons/threads.svg.png" alt="Threads" />
+                Threads
+              </span>
+              <span class="arrow">›</span>
+            </a>
+          </div>
+
+          <footer>© <span id="y"></span> Resonant Artisan</footer>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      // Footer year
+      document.getElementById("y").textContent = new Date().getFullYear();
+
+      // ===== Analytics Engine event sender (Worker route: /events) =====
+      function sendMusicClick(platform) {
+        fetch("/events", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            event: "music_link_click",
+            platform,
+            page: location.pathname,
+          }),
+          keepalive: true,
+        }).catch(() => {});
+      }
+
+      // ===== Cursor-reactive background (lightweight) =====
+      (function () {
+        const root = document.documentElement;
+        const reduceMotion = matchMedia(
+          "(prefers-reduced-motion: reduce)"
+        ).matches;
+        const coarsePointer = matchMedia("(pointer: coarse)").matches;
+
+        let targetX = 0.5,
+          targetY = 0.35;
+        let currentX = targetX,
+          currentY = targetY;
+
+        let tx = 0,
+          ty = 0;
+        let cx = 0,
+          cy = 0;
+
+        function setVars() {
+          root.style.setProperty("--mx", (currentX * 100).toFixed(2) + "%");
+          root.style.setProperty("--my", (currentY * 100).toFixed(2) + "%");
+          root.style.setProperty("--x", cx.toFixed(2) + "px");
+          root.style.setProperty("--y", cy.toFixed(2) + "px");
+        }
+
+        setVars();
+
+        if (!reduceMotion && !coarsePointer) {
+          window.addEventListener(
+            "pointermove",
+            (e) => {
+              targetX = e.clientX / window.innerWidth;
+              targetY = e.clientY / window.innerHeight;
+
+              tx = (targetX - 0.5) * 18;
+              ty = (targetY - 0.5) * 18;
+            },
+            { passive: true }
+          );
+
+          function tick() {
+            currentX += (targetX - currentX) * 0.08;
+            currentY += (targetY - currentY) * 0.08;
+            cx += (tx - cx) * 0.08;
+            cy += (ty - cy) * 0.08;
+
+            setVars();
+            requestAnimationFrame(tick);
+          }
+          requestAnimationFrame(tick);
+        }
+      })();
+    </script>
+  </body>
+</html>
